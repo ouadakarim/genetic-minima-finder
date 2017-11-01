@@ -4,6 +4,7 @@ This projects is a genetic algorithm implementation, which task is to find the m
 ### Tech Stach
 The main tech stack is focused around Python as a programming language. This involves:
 *  Python 3 - programming language
+
 Packages:
 *  DEAP (Distributed Evolutionary Algorithms)
 
