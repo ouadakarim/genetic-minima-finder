@@ -7,6 +7,11 @@ functions = [
     lambda x: x**4 + 9*x**3 - 5*x**2 + 2*x + 1  # should be -7.1114
 ]
 
+# TODO:
+# Implement some kind of grid, so that we find global all minimums
+# Maybe random or intelligent way to get correct periods
+
 algorithm = Algorithm(functions[1])
 print(algorithm.calculate())
+
 
