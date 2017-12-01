@@ -15,15 +15,10 @@ def finite_difference(function, diff=0.01):
     return evaluation
 
 
-def min_value(function, x1 = None, x2 = None):
+def min_value(function):
     def evaluation(individual):
         x = reduce(add, individual, 0)
         val = function(x)
-        # Dirty hack to exclude arguments out of range
-        if x1 and x < x1:
-            val = 1000000000000
-        if x2 and x > x2:
-            val = 1000000000000
         return -val,
     return evaluation
 

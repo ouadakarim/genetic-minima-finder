@@ -36,11 +36,17 @@ class Algorithm(object):
         self.toolbox.register("mutate", tools.mutFlipBit, indpb=0.05)
         self.toolbox.register("select", tools.selTournament, tournsize=3)
 
-    def calculate(self):
+    def calculate(self, x1 = None, x2 = None):
         population = self.toolbox.population(n=POPULATION)
         for gen in range(GENERATIONS):
             offspring = algorithms.varAnd(population, self.toolbox, cxpb=0.5,
                                           mutpb=0.1)
+            # Filter out records out of range
+            if x1:
+                offspring = [ind for ind in offspring if reduce(add, ind, 0) >= x1]
+            if x2:
+                offspring = [ind for ind in offspring if reduce(add, ind, 0) <= x2]
+
             fits = self.toolbox.map(self.toolbox.evaluate, offspring)
             for fit, ind in zip(fits, offspring):
                 ind.fitness.values = fit
@@ -61,8 +67,8 @@ class Algorithm(object):
                 x1 = ranges[i]
                 x2 = ranges[i + 1]
                 self.toolbox.register("evaluate",
-                                      utils.min_value(self.function, x1, x2))
-                result = self.calculate()
+                                      utils.min_value(self.function))
+                result = self.calculate(x1, x2)
                 results.append(result[0])
         return results
 
