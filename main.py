@@ -1,13 +1,25 @@
+import sys
+import parser
+import re
 from genetics import Algorithm
-from math import cos, sinh
 
-functions = [
-    lambda x: cos(x)+sinh(x)**2,  # min at 0.0
-    lambda x: (x-1)*(x+4)*(x+8)*(x-6)*(x-3)*x,  # min at -6.776, 0.4708, 5.094
-    lambda x: x**4 + 9*x**3 - 5*x**2 + 2*x + 1  # should be only -7.1114
-]
+POLYNOMIAL_REGEX=r"(^-)?(((\d+(\.\d+)?)?(x(\^\d)?)?)([+-](?!$))?)*"
 
-algorithm = Algorithm(functions[1])
+print("Provide polynomial to analyze")
+print("Example: -1.23x^4")
+user_input = input()
+
+if not re.fullmatch(POLYNOMIAL_REGEX, user_input):
+	print("Provided function is not valid polynomial of variable x")
+	sys.exit(-1)
+
+user_input = "lambda x: " + user_input.replace("^", "**")
+user_input = re.sub(r"\dx", lambda mo: mo.group(0)[0]+"*x", user_input)
+
+function_st = parser.expr(user_input).compile()
+function = eval(function_st)
+
+algorithm = Algorithm(function)
 # print(algorithm.calculate())
 print("Local minimums at:", algorithm.find_local_minimums())
 
