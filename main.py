@@ -4,11 +4,13 @@ import re
 from genetics import Algorithm
 
 POLYNOMIAL_REGEX=r"(^-)?(((\d+(\.\d+)?)?(x(\^\d)?)?)([+-](?!$))?)*"
+DEFAULT_MIN_X = -100
+DEFAULT_MAX_X = 100
 
-def int_input(msg):
+def int_input(msg, default):
 	inp = input(msg)
 	if not inp:
-		return None
+		return default
 	try:
 		return int(inp)
 	except:
@@ -23,8 +25,9 @@ if not re.fullmatch(POLYNOMIAL_REGEX, user_input):
 	print("Provided function is not valid polynomial of variable x")
 	sys.exit(-1)
 
-min_x = int_input("Provide start of evalution range (min x, default -100): ")
-max_x = int_input("Provide end of evalution range (max x, default 100): ")
+min_x = int_input("Provide start of evalution range (min x, default -100): ", DEFAULT_MIN_X)
+max_x = int_input("Provide end of evalution range (max x, default 100): ", DEFAULT_MAX_X)
+
 if min_x >= max_x:
 	print("Min x has to be smaller than max x")
 	sys.exit(-1)
@@ -38,5 +41,3 @@ function = eval(function_st)
 algorithm = Algorithm(function)
 # print(algorithm.calculate())
 print("Local minimums at:", algorithm.find_local_minimums(min_val=min_x, max_val=max_x))
-
-
