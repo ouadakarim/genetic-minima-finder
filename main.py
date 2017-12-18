@@ -39,5 +39,8 @@ function_st = parser.expr(user_input).compile()
 function = eval(function_st)
 
 algorithm = Algorithm(function)
-# print(algorithm.calculate())
-print("Local minimums at:", algorithm.find_local_minimums(min_val=min_x, max_val=max_x))
+result = algorithm.find_local_minimums(min_val=min_x, max_val=max_x)
+if result:
+	print("Local minima at:", result)
+else:
+	print("No local minima found in analyzed range!")
