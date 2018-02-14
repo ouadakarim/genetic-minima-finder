@@ -10,7 +10,9 @@ MAX_GEN_VAL = 1
 
 GEN_PER_INDIVIDUAL = 100
 POPULATION = 300
-GENERATIONS = 40
+GENERATIONS_PER_EPOCH = 25
+MAX_GENERATIONS = 10000
+EPSILON = 1e-5
 
 
 class Algorithm(object):
@@ -38,21 +40,35 @@ class Algorithm(object):
 
     def calculate(self, x1 = None, x2 = None):
         population = self.toolbox.population(n=POPULATION)
-        for gen in range(GENERATIONS):
-            offspring = algorithms.varAnd(population, self.toolbox, cxpb=0.5,
+        last_min = None
+        gens = 0
+        while True:
+            for gen in range(GENERATIONS_PER_EPOCH):
+                offspring = algorithms.varAnd(population, self.toolbox, cxpb=0.5,
                                           mutpb=0.1)
-            # Filter out records out of range
-            if x1:
-                offspring = [ind for ind in offspring if reduce(add, ind, 0) >= x1]
-            if x2:
-                offspring = [ind for ind in offspring if reduce(add, ind, 0) <= x2]
+                # Filter out records out of range
+                if x1:
+                    offspring = [ind for ind in offspring if reduce(add, ind, 0) >= x1]
+                if x2:
+                    offspring = [ind for ind in offspring if reduce(add, ind, 0) <= x2]
 
-            fits = self.toolbox.map(self.toolbox.evaluate, offspring)
-            for fit, ind in zip(fits, offspring):
-                ind.fitness.values = fit
-            population = self.toolbox.select(offspring, k=len(population))
-        top10 = tools.selBest(population, k=10)
-        return [reduce(add, x, 0) for x in top10]
+                fits = self.toolbox.map(self.toolbox.evaluate, offspring)
+                for fit, ind in zip(fits, offspring):
+                    ind.fitness.values = fit
+                population = self.toolbox.select(offspring, k=len(population))
+            
+            best = tools.selBest(population, k=1)
+            
+            current_min = reduce(add, best[0], 0)
+            if last_min:
+                if abs(current_min - last_min) < EPSILON:
+                    return current_min
+            last_min = current_min
+            
+            gens += GENERATIONS_PER_EPOCH
+            if gens > MAX_GENERATIONS:
+                return
+
 
     def check_if_range_has_minimum(self, previous_derivative, derivative):
         # if the X axis is passed for this range the previous derivative
@@ -62,37 +78,27 @@ class Algorithm(object):
 
     def check_all_ranges(self, ranges):
         results = []
-        for i, val in enumerate(ranges):
-            if i + 1 < len(ranges):
-                x1 = ranges[i]
-                x2 = ranges[i + 1]
-                self.toolbox.register("evaluate",
-                                      utils.min_value(self.function))
-                result = self.calculate(x1, x2)
-                results.append(result[0])
+        for r in ranges:
+            x1 = r[0]
+            x2 = r[1]
+            self.toolbox.register("evaluate",
+                                  utils.min_value(self.function))
+            result = self.calculate(x1, x2)
+            results.append(result)
         return results
 
     def find_local_minimums(self, min_val=-100, max_val=100, grid=0.1):
         previous_derivative = None
-        min_arr = []
         range_limits = []
         for i in utils.drange(min_val, max_val, grid):
-            x1 = i + grid/2
-            x2 = i - grid/2
+            x1 = i - grid/2
+            x2 = i + grid/2
             # we calculate the derivative in order to check whether
             # the selected range includes a local extremum or not
             derivative = utils.calculate_derivative(self.function, x1, x2)
             if previous_derivative:
                 if self.check_if_range_has_minimum(previous_derivative,
                                                    derivative):
-                    min_arr.append(x2)
+                    range_limits.append((x1 - grid, x2))
             previous_derivative = derivative
-        range_limits.append(min_val)
-        for i, val in enumerate(min_arr):
-            if i + 1 < len(min_arr):
-                x1 = min_arr[i]
-                x2 = min_arr[i + 1]
-                center = (x1 + x2) / 2
-                range_limits.append(center)
-        range_limits.append(max_val)
         return self.check_all_ranges(range_limits)
